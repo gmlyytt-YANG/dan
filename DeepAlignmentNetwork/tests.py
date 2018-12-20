@@ -5,14 +5,18 @@ from matplotlib import pyplot as plt
 from scipy.integrate import simps
 from matplotlib import pyplot as plt
 
-def LandmarkError(imageServer, faceAlignment, normalization='centers', showResults=False, verbose=False):
+def LandmarkError(imageServer, faceAlignment, normalization='centers', showResults=False, verbose=False, train_load=False):
     errors = []
     nImgs = len(imageServer.imgs)
     # print(nImgs)
-    output_dir = './tmp2'
     # print(len(imageServer.newFilenames))
+    output_dir = '../data/roughFaceAlignment'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
+    
+    imageServer.roughLandmarks = []
+    occluErrors = []
+    clearErrors = []
 
     for i in range(nImgs):
         # if i > 200:
@@ -21,26 +25,30 @@ def LandmarkError(imageServer, faceAlignment, normalization='centers', showResul
         gtLandmarks = imageServer.gtLandmarks[i]
         img = imageServer.imgs[i]
         # print(img)
-        prefix = os.path.splitext('_'.join(imageServer.newFilenames[i].split('/')[3:]))[0]
+        if train_load:
+            prefix = os.path.splitext(imageServer.newFilenames[i].split('/')[-1])[0]
+        else:
+            prefix = os.path.splitext(imageServer.filenames[i].split('/')[-1])[0]
         # print(prefix)
         
         if img.shape[0] > 1:
             img = np.mean(img, axis=0)[np.newaxis]
 
         resLandmarks = initLandmarks
-        resLandmarks = faceAlignment.processImg(img, resLandmarks, normalized=True)
+
+        # print(gtLandmarks.shape)
+        # print(initLandmarks.shape)
+        # print('-------------')
+        resLandmarks = faceAlignment.processImg(img, resLandmarks, normalized=train_load)
+        
         img = img.transpose((1, 2, 0))
-        print(prefix)
-        cv2.imwrite(os.path.join(output_dir, prefix+'.jpg'), img)
+        cv2.imwrite(os.path.join(output_dir, prefix + '.jpg'), img)
         np.savetxt(os.path.join(output_dir, prefix + '.pts'), gtLandmarks)
         np.savetxt(os.path.join(output_dir, prefix + '.rpts'), resLandmarks)
         
         # print(resLandmarks)
         # print(gtLandmarks)
         # print('-------')
-        # cv2.imwrite(filename, img.transpose((1,2,0)))
-        # rptsPath = os.path.splitext(filename)[0] + '.rpts'
-        # np.savetxt(rptsPath, resLandmarks)  
         
         if normalization == 'centers':
             normDist = np.linalg.norm(np.mean(gtLandmarks[36:42], axis=0) - np.mean(gtLandmarks[42:48], axis=0))
@@ -50,8 +58,21 @@ def LandmarkError(imageServer, faceAlignment, normalization='centers', showResul
             height, width = np.max(gtLandmarks, axis=0) - np.min(gtLandmarks, axis=0)
             normDist = np.sqrt(width ** 2 + height ** 2)
         
-        error = np.mean(np.sqrt(np.sum((gtLandmarks - resLandmarks)**2,axis=1))) / normDist       
+        landmarkError = np.sqrt(np.sum((gtLandmarks - resLandmarks)**2,axis=1)) / normDist
+        error = np.mean(landmarkError)  
         errors.append(error)
+        
+        roughLandmark = np.hstack(gtLandmarks.flatten(), resLandmarks.flatten(), imageServer.occlus[i], landmarkError)
+        print(roughLandmark.shape)
+        print(roughLandmark)
+        imageServer.roughLandmarks.append(np.hstack(gtLandmarks.flatten(), resLandmarks.flatten(), imageServer.occlus[i], landmarkError))
+        occluError = np.dot(imageServer.occlus[i], landmarkError)
+        print(occluError)
+        occluErrors.append(occluError)
+        clearError = np.dot(1 - imageServer.occlus[i], landmarkError)
+        print(clearError)
+        print('-----------')
+        clearErrors.append(clearError)
         if verbose:
             print("{0}: {1}".format(i, error))
 
@@ -59,6 +80,9 @@ def LandmarkError(imageServer, faceAlignment, normalization='centers', showResul
             plt.imshow(img[0], cmap=plt.cm.gray)            
             plt.plot(resLandmarks[:, 0], resLandmarks[:, 1], 'o')
             plt.show()
+
+    imageServer.roughLandmarks = np.array(imageServer.roughLandmarks)
+    
 
     if verbose:
         print "Image idxs sorted by error"

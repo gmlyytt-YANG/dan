@@ -261,14 +261,14 @@ class FaceAlignmentTraining(object):
         if print_train:
             textRepresentation = np.column_stack((range(len(self.errors)), self.errors, self.errorsTrain))
         self.drawErrors(print_train=print_train)
-        np.savetxt("../errors.txt", textRepresentation)          
+        np.savetxt("../data/errors.txt", textRepresentation)          
 
     def drawErrors(self, print_train=False):
         plt.plot(self.errors)
         if print_train:
             plt.plot(self.errorsTrain)
             plt.ylim(ymax=np.max([self.errors[0], self.errorsTrain[0]]))
-        plt.savefig("../errors.png")
+        plt.savefig("../data/errors.png")
         plt.clf()
 
     def getErrors(self, X, y, loss, idxs, chunkSize=50):
@@ -324,7 +324,7 @@ class FaceAlignmentTraining(object):
                 if train_batches %40 == 0:
                     self.validateNetwork()
                     if self.errors[-1] < lowestError:
-                        save_dir = "../network-{}/".format(str(datetime.datetime.now().strftime("%Y-%m-%d")))
+                        save_dir = "../network/network-{}/".format(str(datetime.datetime.now().strftime("%Y-%m-%d")))
                         if not os.path.exists(save_dir):
                             os.mkdir(save_dir)
                         self.saveNetwork(save_dir)
@@ -333,5 +333,9 @@ class FaceAlignmentTraining(object):
             print(train_batches)
 
             self.validateNetwork()
-            print("training loss:\t\t{:.6f}".format(train_err / train_batches))
-            # self.saveNetwork
+            print("training batch loss:\t\t{:.6f}".format(train_err / train_batches))
+            
+            errorTrain = self.getErrors(self.Xtrain, self.Ytrain, self.test_fn, self.testIdxsTrainSet)
+            print("training loss: \t\t{:.6f}".format(errorTrain))
+            if errorTrain < 0.045:
+                break

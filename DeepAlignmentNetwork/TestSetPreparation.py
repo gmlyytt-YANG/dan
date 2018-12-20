@@ -4,14 +4,14 @@ import numpy as np
 imageBaseDir = "../../0_DATASET/file_bboxes_imgs_pts_opts/"
 boundingBoxDir = "../../0_DATASET/file_bboxes_imgs_pts_opts/bboxes/"
 
-commonSetImageDirs = [imageBaseDir + _ for _ in ["lfpw/testset/", "helen/testset/"]
-commonSetBoundingBoxFiles = [boundingBoxDir + _ for _ in  ["boxesLFPWTest.pkl", "boxesHelenTest.pkl"]
+commonSetImageDirs = [imageBaseDir + _ for _ in ["lfpw/testset/", "helen/testset/"]]
+commonSetBoundingBoxFiles = [boundingBoxDir + _ for _ in  ["boxesLFPWTest.pkl", "boxesHelenTest.pkl"]]
 
 challengingSetImageDirs = [imageBaseDir + "ibug/"]
 challengingSetBoundingBoxFiles = [boundingBoxDir + "boxesIBUG.pkl"]
 
-w300SetImageDirs = [imageBaseDir + _ for _ in ["300W/01_Indoor/", "300W/02_Outdoor/"]
-w300SetBoundingBoxFiles = [boundingBoxDir + _ for _ in ["boxes300WIndoor.pkl", "boxes300WOutdoor.pkl"]
+w300SetImageDirs = [imageBaseDir + _ for _ in ["300W/01_Indoor/", "300W/02_Outdoor/"]]
+w300SetBoundingBoxFiles = [boundingBoxDir + _ for _ in ["boxes300WIndoor.pkl", "boxes300WOutdoor.pkl"]]
 
 datasetDir = "../data/"
 

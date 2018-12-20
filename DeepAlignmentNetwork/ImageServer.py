@@ -62,6 +62,7 @@ class ImageServer(object):
 
             for j in range(len(filenamesInDir)):
                 filenames.append(filenamesInDir[j])
+                # print(filenamesInDir[j])
                 ptsFilename = filenamesInDir[j][:-3] + "opts"
                 landmarks.append(utils.loadFromOPts(ptsFilename))
 

@@ -126,6 +126,7 @@ class FaceAlignment(object):
         return net
 
     def loadNetwork(self, filename, train_load=False):
+        print(filename)
         print('Loading network...')
 
         with np.load(filename) as f:
