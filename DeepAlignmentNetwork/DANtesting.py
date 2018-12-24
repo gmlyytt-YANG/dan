@@ -12,7 +12,7 @@ showCED = True
 normalization = 'centers'
 failureThreshold = 0.08
 
-networkFilename = '../network/network-2018-12-23-22-45/network_00926_2018-12-24-02-47.npz'
+networkFilename = '../network/network-2018-12-24-17-13/network_00494_2018-12-24-17-16.npz'
 nStages = 2
 network = FaceAlignment(112, 112, 1, nStages=nStages)
 network.loadNetwork(networkFilename)
@@ -52,18 +52,18 @@ print ("Occlu error: {0}".format((commonOccluErrs + challengingOccluErrs) / (com
 tests.AUCError(fullsetErrs, failureThreshold, showCurve=showCED)
 print ('----------------')
 
-print ("Processing train set")
-trainSetPrefix = "dataset_nimgs=60960_perturbations=[0.2, 0.2, 20, 0.25]_size=[112, 112]"
-trainSet = ImageServer.Load(datasetDir + trainSetPrefix + "{}.npz".format(nStages - 1))
-trainSet.baselineShow()
-trainErrs, trainOccluErrs, trainOccluNums, trainClearErrs, trainClearNums =\
-    tests.LandmarkError(trainSet, network, normalization, showResults, verbose, datasetDir + trainSetPrefix + "{}.npz".format(nStages), train_load=True, normalized=True, stage=nStages)
-print ('-----------------')
-
-print ("Processing val set")
-valSetPrefix = "dataset_nimgs=100_perturbations=[]_size=[112, 112]"
-valSet = ImageServer.Load(datasetDir + valSetPrefix + "{}.npz".format(nStages - 1))
-valSet.baselineShow()
-valErrs, valOccluErrs, valOccluNums, valClearErrs, valClearNums =\
-    tests.LandmarkError(valSet, network, normalization, showResults, verbose, datasetDir + valSetPrefix + "{}.npz".format(nStages), normalized=True, stage=nStages)
+# print ("Processing train set")
+# trainSetPrefix = "dataset_nimgs=60960_perturbations=[0.2, 0.2, 20, 0.25]_size=[112, 112]"
+# trainSet = ImageServer.Load(datasetDir + trainSetPrefix + "{}.npz".format(nStages - 1))
+# trainSet.baselineShow()
+# trainErrs, trainOccluErrs, trainOccluNums, trainClearErrs, trainClearNums =\
+#     tests.LandmarkError(trainSet, network, normalization, showResults, verbose, datasetDir + trainSetPrefix + "{}.npz".format(nStages), train_load=True, normalized=True, stage=nStages)
+# print ('-----------------')
+# 
+# print ("Processing val set")
+# valSetPrefix = "dataset_nimgs=100_perturbations=[]_size=[112, 112]"
+# valSet = ImageServer.Load(datasetDir + valSetPrefix + "{}.npz".format(nStages - 1))
+# valSet.baselineShow()
+# valErrs, valOccluErrs, valOccluNums, valClearErrs, valClearNums =\
+#     tests.LandmarkError(valSet, network, normalization, showResults, verbose, datasetDir + valSetPrefix + "{}.npz".format(nStages), normalized=True, stage=nStages)
 

@@ -166,7 +166,10 @@ class FaceAlignmentTraining(object):
        
         net[curStage + '_fc1'] = batch_norm(lasagne.layers.DenseLayer(net[curStage + '_fc1_dropout'], num_units=256, W=GlorotUniform('relu')))
 
-        net[curStage + '_output'] = lasagne.layers.DenseLayer(net[curStage + '_fc1'], num_units=136, nonlinearity=None)
+        net[curStage + '_fc2_dropout'] = lasagne.layers.DropoutLayer(net[curStage + '_fc1'], p=0.5)
+        net[curStage + '_fc2'] = batch_norm(lasagne.layers.DenseLayer(net[curStage + '_fc2_dropout'], num_units=256, W=GlorotUniform('relu')))
+        
+        net[curStage + '_output'] = lasagne.layers.DenseLayer(net[curStage + '_fc2'], num_units=136, nonlinearity=None)
         # net[curStage + '_landmarks'] = lasagne.layers.ElemwiseSumLayer([net[prevStage + '_landmarks_affine'], net[curStage + '_output']])
 
         # net[curStage + '_landmarks'] = LandmarkTransformLayer(net[curStage + '_landmarks'], net[prevStage + '_transform_params'], True)
@@ -460,7 +463,7 @@ class FaceAlignmentTraining(object):
                 if errorTrain < 0.045:
                     break
             
-            if eachEpochLowestError < epochLowestError:
+            if eachEpochLowestError < epochLowestError * 0.98:
                 epochLowestError = eachEpochLowestError
                 earlyStoppintPatienceCount = 0
                 print("new lowest error is {}".format(epochLowestError))
