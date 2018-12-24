@@ -81,9 +81,10 @@ class FaceAlignment(object):
         net[curStage + '_fc1'] = batch_norm(lasagne.layers.DenseLayer(net[curStage + '_fc1_dropout'], num_units=256, W=GlorotUniform('relu')))
 
         net[curStage + '_output'] = lasagne.layers.DenseLayer(net[curStage + '_fc1'], num_units=136, nonlinearity=None)
-        net[curStage + '_landmarks'] = lasagne.layers.ElemwiseSumLayer([net[prevStage + '_landmarks_affine'], net[curStage + '_output']])
+        # net[curStage + '_landmarks'] = lasagne.layers.ElemwiseSumLayer([net[prevStage + '_landmarks_affine'], net[curStage + '_output']])
 
-        net[curStage + '_landmarks'] = LandmarkTransformLayer(net[curStage + '_landmarks'], net[prevStage + '_transform_params'], True)
+        # net[curStage + '_landmarks'] = LandmarkTransformLayer(net[curStage + '_landmarks'], net[prevStage + '_transform_params'], True)
+        net[curStage + '_landmarks'] = net[curStage + '_output']
 
     def createCNN(self):
         net = {}
@@ -126,7 +127,6 @@ class FaceAlignment(object):
         return net
 
     def loadNetwork(self, filename, train_load=False):
-        print(filename)
         print('Loading network...')
 
         with np.load(filename) as f:
@@ -151,9 +151,11 @@ class FaceAlignment(object):
             inputImg, transform = self.CropResizeRotate(img, inputLandmarks)
             inputImg = inputImg - self.meanImg
             inputImg = inputImg / self.stdDevImg
-         
-        output = self.generate_network_output([inputImg])[0][0]
         
+        # print(inputImg[:5][:5].flatten())
+        output = self.generate_network_output([inputImg])[0][0]
+        # print(output[:5])
+        # print('----------')
         if self.confidenceLayer:
             landmarkOutput = output[:-2]
             confidenceOutput = output[-2:]
@@ -170,7 +172,8 @@ class FaceAlignment(object):
             if normalized:
                 return landmarks
             else:
-                return np.dot(landmarks - transform[1], np.linalg.inv(transform[0]))
+                # return np.dot(landmarks - transform[1], np.linalg.inv(transform[0]))
+                return landmarks
 
     def processNormalizedImg(self, img):
         inputImg = img.astype(np.float32)

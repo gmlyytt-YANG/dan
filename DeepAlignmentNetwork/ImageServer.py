@@ -168,7 +168,6 @@ class ImageServer(object):
         newOccluFilenames = []
 
         occlus = []
-
         
         # newBoundingBoxes = []
 
@@ -199,8 +198,8 @@ class ImageServer(object):
                 tempInit = (tempInit - tempInit.mean(axis=0)) * scaling + tempInit.mean(axis=0)            
                 tempInit = np.dot(R, (tempInit - tempInit.mean(axis=0)).T).T + tempInit.mean(axis=0)
 
-                tempImg, tempInit, tempGroundTruth = self.CropResizeRotate(self.imgs[i], tempInit, self.gtLandmarks[i])                
-                # tempImg, tempInit, tempGroundTruth, tempBbox = self.CropResizeRotate2(self.imgs[i], boundingBox, tempInit, self.gtLandmarks[i])                
+                tempImg, tempInit, tempGroundTruth = self.CropResizeRotate(self.imgs[i], tempInit, self.gtLandmarks[i])
+                # tempImg, tempInit, tempGroundTruth, tempBbox = self.CropResizeRotate2(self.imgs[i], boundingBox, tempInit, self.gtLandmarks[i]) 
                 # for elem in tempGroundTruth:
                 #     for _ in elem:
                 #         if _ < 0:
@@ -349,27 +348,45 @@ class ImageServer(object):
         # print(groundTruth)
         return outImg, initShape, groundTruth
 
+    def baselineShow(self):
+        meanOcularDistance = 0.0
+        meanocularSquareError = 0.0
+        meanDeltaSquareError = 0.0
+        occluNums = 0.0
+        dataSize = len(self.imgs)
+        meanOccluWeightedDeltaSquareError = 0.0
 
-    # def CropResizeRotate2(self, img, bbox, initShape, groundTruth):
-    #     meanShapeSize = max(self.meanShape.max(axis=0) - self.meanShape.min(axis=0))
-    #     destShapeSize = min(self.imgSize) * (1 - 2 * self.frameFraction)
+        for elem in self.roughLandmarks:
+            gtLandmarks = np.reshape(elem[:136], (68, 2))
+            firstStageLandmarks = np.reshape(elem[136:272], (68, 2))
+            occlu = elem[272:340]
+            landmarkError = elem[340:408]
 
-    #     scaledMeanShape = self.meanShape * destShapeSize / meanShapeSize
+            OcularDistance = np.linalg.norm(np.mean(gtLandmarks[36:42], axis=0) - np.mean(gtLandmarks[42:48], axis=0))
+            meanOcularDistance += OcularDistance
+            # print(OccluDistance)
 
-    #     destShape = scaledMeanShape.copy() - scaledMeanShape.mean(axis=0)
-    #     offset = np.array(self.imgSize[::-1]) / 2
-    #     destShape += offset
+            ocularSquareError = np.mean(landmarkError)
+            meanocularSquareError += ocularSquareError
+            
+            deltaSquareError = np.mean(np.sqrt(np.sum((gtLandmarks - firstStageLandmarks)**2,axis=1)))
+            meanDeltaSquareError += deltaSquareError
+            
+            occluNums += np.sum(occlu)
 
-    #     A, t = utils.bestFit(destShape, initShape, True)
-    # 
-    #     A2 = np.linalg.inv(A)
-    #     t2 = np.dot(-t, A2)
+            scaledOcclu = np.reshape(1 - 0.1 * occlu, (68, 1))    
+            occluWeightedDeltaSquareError = np.mean(np.sqrt(np.sum((scaledOcclu * (gtLandmarks - firstStageLandmarks))**2,axis=1))) 
+            meanOccluWeightedDeltaSquareError += occluWeightedDeltaSquareError
 
-    #     outImg = np.zeros((img.shape[0], self.imgSize[0], self.imgSize[1]), dtype=img.dtype)
-    #     for i in range(img.shape[0]):
-    #         outImg[i] = ndimage.interpolation.affine_transform(img[i], A2, t2[[1, 0]], output_shape=self.imgSize)
-
-    #     initShape = np.dot(initShape, A) + t
-    #     groundTruth = np.dot(groundTruth, A) + t
-    #     bbox = np.dot(bbox, A) + t
-    #     return outImg, initShape, groundTruth, bbox
+        meanOcularDistance /= dataSize
+        meanocularSquareError /= dataSize
+        meanDeltaSquareError /= dataSize
+        occluRatio = occluNums / (68 * dataSize) 
+        meanOccluWeightedDeltaSquareError /= dataSize
+        
+        print("dataSize: {}".format(dataSize))
+        print("meanOcularDistance: {}".format(meanOcularDistance))
+        print("meanocularSquareError: {}".format(meanocularSquareError))
+        print("meanDeltaSquareError: {}".format(meanDeltaSquareError))
+        print("occluRatio: {}".format(occluRatio))
+        print("meanOccluWeightedDeltaSquareError: {}".format(meanOccluWeightedDeltaSquareError))
