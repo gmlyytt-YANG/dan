@@ -80,11 +80,14 @@ class FaceAlignment(object):
        
         net[curStage + '_fc1'] = batch_norm(lasagne.layers.DenseLayer(net[curStage + '_fc1_dropout'], num_units=256, W=GlorotUniform('relu')))
 
+        # net[curStage + '_fc2_dropout'] = lasagne.layers.DropoutLayer(net[curStage + '_fc1'], p=0.5)
+        # net[curStage + '_fc2'] = batch_norm(lasagne.layers.DenseLayer(net[curStage + '_fc2_dropout'], num_units=256, W=GlorotUniform('relu')))
+        
         net[curStage + '_output'] = lasagne.layers.DenseLayer(net[curStage + '_fc1'], num_units=136, nonlinearity=None)
-        # net[curStage + '_landmarks'] = lasagne.layers.ElemwiseSumLayer([net[prevStage + '_landmarks_affine'], net[curStage + '_output']])
+        net[curStage + '_landmarks'] = lasagne.layers.ElemwiseSumLayer([net[prevStage + '_landmarks_affine'], net[curStage + '_output']])
 
-        # net[curStage + '_landmarks'] = LandmarkTransformLayer(net[curStage + '_landmarks'], net[prevStage + '_transform_params'], True)
-        net[curStage + '_landmarks'] = net[curStage + '_output']
+        net[curStage + '_landmarks'] = LandmarkTransformLayer(net[curStage + '_landmarks'], net[prevStage + '_transform_params'], True)
+        # net[curStage + '_landmarks'] = net[curStage + '_output']
 
     def createCNN(self):
         net = {}

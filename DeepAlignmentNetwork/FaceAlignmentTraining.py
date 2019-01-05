@@ -74,7 +74,7 @@ class FaceAlignmentTraining(object):
         return T.mean(errors)
     
     def landmarkOccluSquarePairErrorNorm(self, output, landmarks):
-        weight = {'occlu': 0.8, 'clear': 1.2}
+        weight = {'occlu': 1.0, 'clear': 1.0}
         b = weight['clear']
         a = weight['occlu'] - weight['clear']
 
@@ -83,7 +83,7 @@ class FaceAlignmentTraining(object):
         firstStageLandmarks = T.reshape(roughLandmarks[136:272], (68, 2))
         occlu = roughLandmarks[272:340]
         scaledOcclu = T.reshape(a * occlu + b, (68, 1))
-        delta = scaledOcclu * (gtLandmarks - firstStageLandmarks)
+        delta = scaledOcclu * (gtLandmarks - firstStageLandmarks) + firstStageLandmarks
         # delta = gtLandmarks - firstStageLandmarks
         transformedLandmarks = T.reshape(output[:136], (68, 2))
         
@@ -103,7 +103,7 @@ class FaceAlignmentTraining(object):
         return T.mean(errors)
     
     def landmarkOccluPairErrorNorm(self, output, landmarks):
-        weight = {'occlu': 0.8, 'clear': 1.2}
+        weight = {'occlu': 0.85, 'clear': 1}
         b = weight['clear']
         a = weight['occlu'] - weight['clear']
         
@@ -120,7 +120,7 @@ class FaceAlignmentTraining(object):
         
         # transformedLandmarks = outputReshape + firstStageLandmarks
         # transformedLandmarks = outputReshape * scaledOcclu * eyeDist + firstStageLandmarks 
-        transformedLandmarks = outputReshape * scaledOcclu + firstStageLandmarks 
+        transformedLandmarks = (outputReshape - firstStageLandmarks) * scaledOcclu + firstStageLandmarks 
       
         meanError = T.mean(T.sqrt(T.sum((transformedLandmarks - gtLandmarks)**2, axis=1)))
         res = meanError / eyeDist
@@ -166,15 +166,15 @@ class FaceAlignmentTraining(object):
        
         net[curStage + '_fc1'] = batch_norm(lasagne.layers.DenseLayer(net[curStage + '_fc1_dropout'], num_units=256, W=GlorotUniform('relu')))
 
-        net[curStage + '_fc2_dropout'] = lasagne.layers.DropoutLayer(net[curStage + '_fc1'], p=0.5)
-        net[curStage + '_fc2'] = batch_norm(lasagne.layers.DenseLayer(net[curStage + '_fc2_dropout'], num_units=256, W=GlorotUniform('relu')))
+        # net[curStage + '_fc2_dropout'] = lasagne.layers.DropoutLayer(net[curStage + '_fc1'], p=0.5)
+        # net[curStage + '_fc2'] = batch_norm(lasagne.layers.DenseLayer(net[curStage + '_fc2_dropout'], num_units=256, W=GlorotUniform('relu')))
         
-        net[curStage + '_output'] = lasagne.layers.DenseLayer(net[curStage + '_fc2'], num_units=136, nonlinearity=None)
-        # net[curStage + '_landmarks'] = lasagne.layers.ElemwiseSumLayer([net[prevStage + '_landmarks_affine'], net[curStage + '_output']])
+        net[curStage + '_output'] = lasagne.layers.DenseLayer(net[curStage + '_fc1'], num_units=136, nonlinearity=None)
+        net[curStage + '_landmarks'] = lasagne.layers.ElemwiseSumLayer([net[prevStage + '_landmarks_affine'], net[curStage + '_output']])
 
-        # net[curStage + '_landmarks'] = LandmarkTransformLayer(net[curStage + '_landmarks'], net[prevStage + '_transform_params'], True)
+        net[curStage + '_landmarks'] = LandmarkTransformLayer(net[curStage + '_landmarks'], net[prevStage + '_transform_params'], True)
         # net[curStage + '_landmarks'] = LandmarkTransformLayer(net[curStage + '_output'], net[prevStage + '_transform_params'], True)
-        net[curStage + '_landmarks'] = net[curStage + '_output']
+        # net[curStage + '_landmarks'] = net[curStage + '_output']
 
 
     def createCNN(self):
@@ -335,7 +335,8 @@ class FaceAlignmentTraining(object):
             img = imgs[index]
             output = self.generate_network_output_deterministic([img])[0]
             print(self.XvalidNames[index])
-            print(img[:5][:5].flatten())
+            # print(img[:5][:5].flatten())
+            print(self.Yvalid[index][0][0:5])
             print(output[0][:5])
             print('------------')
 
@@ -438,7 +439,7 @@ class FaceAlignmentTraining(object):
                 train_err += train_err_elem
                 
                 if train_batches %40 == 0:
-                    print("Train error: " + str(train_err / train_batches))
+                    # print("Train error: " + str(train_err / train_batches))
                     self.validateNetwork()
                     # self.getOutputValid()
                     if self.errors[-1] < lowestError:
@@ -463,7 +464,7 @@ class FaceAlignmentTraining(object):
                 if errorTrain < 0.045:
                     break
             
-            if eachEpochLowestError < epochLowestError * 0.98:
+            if eachEpochLowestError < epochLowestError:
                 epochLowestError = eachEpochLowestError
                 earlyStoppintPatienceCount = 0
                 print("new lowest error is {}".format(epochLowestError))

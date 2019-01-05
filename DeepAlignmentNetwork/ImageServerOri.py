@@ -40,7 +40,8 @@ class ImageServer(object):
 
     def Save(self, datasetDir, filename=None):
         if filename is None:
-            filename = "dataset_nimgs={0}_perturbations={1}_size={2}".format(len(self.imgs), list(self.perturbations), self.imgSize)
+            # filename = "dataset_nimgs={0}_perturbations={1}_size={2}".format(len(self.imgs), list(self.perturbations), self.imgSize)
+            filename = "dataset_nimgs={0}".format(len(self.imgs))
             if self.color:
                 filename += "_color={0}".format(self.color)
             filename += ".npz"
@@ -52,12 +53,10 @@ class ImageServer(object):
         filenames = []
         landmarks = []
         boundingBoxes = []
-       
-        
+
         for i in range(len(imageDirs)):
             filenamesInDir = glob.glob(imageDirs[i] + "*.jpg")
             filenamesInDir += glob.glob(imageDirs[i] + "*.png")
-            # print(imageDirs[i], len(filenamesInDir))  
 
             if boundingBoxFiles is not None:
                 boundingBoxDict = pickle.load(open(boundingBoxFiles[i], 'rb'))
@@ -76,7 +75,7 @@ class ImageServer(object):
         filenames = filenames[startIdx : startIdx + nImgs]
         landmarks = landmarks[startIdx : startIdx + nImgs]
         boundingBoxes = boundingBoxes[startIdx : startIdx + nImgs]
-        # print(len(filenames))
+
         mirrorList = [False for i in range(nImgs)]
         if mirrorFlag:     
             mirrorList = mirrorList + [True for i in range(nImgs)]
@@ -98,17 +97,9 @@ class ImageServer(object):
         self.occlus = []
         
         origLandmarks = self.origLandmarks.copy()
-        # print(len(self.filenames))
+
         for i in range(len(self.filenames)):
             img = cv2.imread(self.filenames[i])
-            # pint(img.shape)
-            groundTruth = origLandmarks[i][:, :2]
-            box = None if len(self.boundingBoxes) <= 2 else self.boundingBoxes[i]
-            if len(self.boundingBoxes) > 2:
-                self.boundingBoxes[i] = box
-            img, groundTruth, box = utils.scaleImgLandmark(img, box, groundTruth)
-            filename = os.path.splitext(self.filenames[i])[0].split('/')[-1]
-            origLandmarks[i][:, :2] = groundTruth
             # if not train:
             #     print(img.shape)
             #     print('----------')
@@ -146,10 +137,6 @@ class ImageServer(object):
                 bestFit = utils.bestFit(groundTruth, self.meanShape)
             elif self.initialization == 'box':
                 bestFit = utils.bestFitRect(groundTruth, self.meanShape, box=self.boundingBoxes[i])
-            
-            cv2.imwrite("../data/roughFaceAlignment/{}.png".format(filename), np.transpose(img, (1, 2, 0)))
-            np.savetxt("../data/roughFaceAlignment/{}.npz".format(filename), bestFit)
-            np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(filename), groundTruth)
 
             self.imgs.append(img)
             self.initLandmarks.append(bestFit)
@@ -213,9 +200,6 @@ class ImageServer(object):
                 tempInit = np.dot(R, (tempInit - tempInit.mean(axis=0)).T).T + tempInit.mean(axis=0)
 
                 tempImg, tempInit, tempGroundTruth = self.CropResizeRotate(self.imgs[i], tempInit, self.gtLandmarks[i])
-                # cv2.imwrite("../data/roughFaceAlignment/{}.png".format(i), np.transpose(tempImg, (1, 2, 0)))
-                # np.savetxt("../data/roughFaceAlignment/{}.npz".format(i), tempInit)
-                # np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(i), tempGroundTruth)
                 # tempImg, tempInit, tempGroundTruth, tempBbox = self.CropResizeRotate2(self.imgs[i], boundingBox, tempInit, self.gtLandmarks[i]) 
                 # for elem in tempGroundTruth:
                 #     for _ in elem:
@@ -282,17 +266,7 @@ class ImageServer(object):
             os.mkdir(output_dir)
         for i in range(self.initLandmarks.shape[0]):
             # print(self.filenames[i])
-            img = self.imgs[i]
-            initLandmark = self.initLandmarks[i]
-            gtLandmark = self.gtLandmarks[i]
-            # cv2.imwrite("../data/roughFaceAlignment/{}.png".format(i), np.transpose(img, (1, 2, 0)))
-            # np.savetxt("../data/roughFaceAlignment/{}.npz".format(i), initLandmark)
-            # np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(i), gtLandmark)
-            tempImg, tempInit, tempGroundTruth = self.CropResizeRotate(img, initLandmark, gtLandmark)
-            cv2.imwrite("../data/roughFaceAlignment/{}.png".format(i), np.transpose(tempImg, (1, 2, 0)))
-            np.savetxt("../data/roughFaceAlignment/{}.npz".format(i), tempInit)
-            np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(i), tempGroundTruth)
-            
+            tempImg, tempInit, tempGroundTruth = self.CropResizeRotate(self.imgs[i], self.initLandmarks[i], self.gtLandmarks[i])
             # prefix = os.path.splitext('_'.join(self.filenames[i].split('/')[3:]))[0]
             # tempImg =  tempImg.transpose((1, 2, 0))
             # print(tempImg)

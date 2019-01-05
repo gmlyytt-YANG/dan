@@ -1,10 +1,38 @@
 import numpy as np
 import time
 import logging
+import cv2
 
 def scale(data):
     """Scale data to [0, 255] using min max method. """
     return np.multiply((data - np.min(data)) / (np.max(data) - np.min(data)), 255)
+
+def scaleImgLandmark(img, box, landmark):
+    if box is None:
+        box = np.array([landmark[:, 0].min(), landmark[:, 1].min(), landmark[:, 0].max(), landmark[:, 1].max()])
+    box = [int(_) for _ in box]
+    w, h = box[2] - box[0], box[3] - box[1]
+    scale = int(min(w, h) * 0.2)
+    boxOri = np.array(box).copy()
+    
+    if box[1] >= scale:
+        box[1] -= scale
+    if box[3] <= img.shape[0] - scale:
+        box[3] += scale
+    if box[0] >= scale:
+        box[0] -= scale
+    if box[2] <= img.shape[1] - scale:
+        box[2] += scale
+    
+    w, h = box[2] - box[0], box[3] - box[1]
+    # face = img[boxOri[1]:boxOri[3], boxOri[0]:boxOri[2]]
+    outline = img[box[1]:box[3], box[0]:box[2]]
+    landmark = np.multiply((landmark - [box[0], box[1]]) / [w, h], [outline.shape[1], outline.shape[0]])
+    # print(outline.shape)
+    # print(landmark)
+    # print('---------')
+    
+    return outline, landmark, np.array([boxOri[0] - box[0], boxOri[1] - box[1], boxOri[2] - box[0], boxOri[3] - box[1]])
 
 def gaussian_noise(img, channel_first=False):
 	"""Add gaussian noise to images """
