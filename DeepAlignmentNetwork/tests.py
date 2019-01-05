@@ -13,7 +13,7 @@ def LandmarkError(imageServer, faceAlignment, normalization='centers', showResul
     roughLandmarks = []
     # print(nImgs)
     # print(len(imageServer.newFilenames))
-    # output_dir = '../data/roughFaceAlignment'
+    output_dir = '/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/roughFaceAlignment'
     # imageServer.roughLandmarks = []
     occluErrors = 0.0
     clearErrors = 0.0
@@ -26,7 +26,8 @@ def LandmarkError(imageServer, faceAlignment, normalization='centers', showResul
         gtLandmarks = imageServer.gtLandmarks[i]
         img = imageServer.imgs[i]
         # print(imageServer.filenames[i])
-        roughLandmark = imageServer.roughLandmarks[i]
+        if stage > 1:
+            roughLandmark = imageServer.roughLandmarks[i]
         # print(img)
         if train_load:
             prefix = os.path.splitext(imageServer.newFilenames[i].split('/')[-1])[0]
@@ -39,11 +40,6 @@ def LandmarkError(imageServer, faceAlignment, normalization='centers', showResul
 
         resLandmarks = initLandmarks
         resLandmarks = faceAlignment.processImg(img, resLandmarks, normalized=normalized)
-        
-        # img = img.transpose((1, 2, 0))
-        # cv2.imwrite(os.path.join(output_dir, prefix + '.jpg'), img)
-        # np.savetxt(os.path.join(output_dir, prefix + '.pts'), gtLandmarks)
-        # np.savetxt(os.path.join(output_dir, prefix + '.rpts'), resLandmarks)
         
         # print(gtLandmarks.shape)
         
@@ -65,6 +61,13 @@ def LandmarkError(imageServer, faceAlignment, normalization='centers', showResul
             firstStageLandmarks = np.reshape(roughLandmark[136:272], (68, 2))
             transformedLandmarks = (resLandmarks - firstStageLandmarks) * scaledOcclu + firstStageLandmarks
             landmarkError = np.sqrt(np.sum((gtLandmarks - transformedLandmarks)**2,axis=1)) / normDist
+            
+            img = img.transpose((1, 2, 0))
+            cv2.imwrite(os.path.join(output_dir, prefix + '.jpg'), img)
+            np.savetxt(os.path.join(output_dir, prefix + '.pts'), gtLandmarks)
+            np.savetxt(os.path.join(output_dir, prefix + '.rpts'), transformedLandmarks)
+            np.savetxt(os.path.join(output_dir, prefix + '.opts'), occlu)
+             
             # print(scaledOcclu)
             # print(resLandmarks)
             # print(firstStageLandmarks) 

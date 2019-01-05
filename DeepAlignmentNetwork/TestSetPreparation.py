@@ -1,8 +1,8 @@
 from ImageServer import ImageServer
 import numpy as np
 
-imageBaseDir = "../../0_DATASET/file_bboxes_imgs_pts_opts/"
-boundingBoxDir = "../../0_DATASET/file_bboxes_imgs_pts_opts/bboxes/"
+imageBaseDir = "/media/kb250/K/yl/0_DATASET/file_bboxes_imgs_pts_opts/"
+boundingBoxDir = "/media/kb250/K/yl/0_DATASET/file_bboxes_imgs_pts_opts/bboxes/"
 
 commonSetImageDirs = [imageBaseDir + _ for _ in ["lfpw/testset/", "helen/testset/"]]
 commonSetBoundingBoxFiles = [boundingBoxDir + _ for _ in  ["boxesLFPWTest.pkl", "boxesHelenTest.pkl"]]
@@ -13,9 +13,9 @@ challengingSetBoundingBoxFiles = [boundingBoxDir + "boxesIBUG.pkl"]
 w300SetImageDirs = [imageBaseDir + _ for _ in ["300W/01_Indoor/", "300W/02_Outdoor/"]]
 w300SetBoundingBoxFiles = [boundingBoxDir + _ for _ in ["boxes300WIndoor.pkl", "boxes300WOutdoor.pkl"]]
 
-datasetDir = "../data/"
+datasetDir = "/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/"
 
-meanShape = np.load("../data/meanFaceShape.npz")["meanShape"]
+meanShape = np.load("/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/meanFaceShape.npz")["meanShape"]
 
 commonSet = ImageServer(initialization='box')
 commonSet.PrepareData(commonSetImageDirs, commonSetBoundingBoxFiles, meanShape, 0, 1000, False)

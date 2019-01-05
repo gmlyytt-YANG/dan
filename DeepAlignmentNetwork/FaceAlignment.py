@@ -39,7 +39,10 @@ class FaceAlignment(object):
         self.network = self.layers['output']
         
         self.prediction = lasagne.layers.get_output(self.network, deterministic=True)
-        self.generate_network_output = theano.function([self.data], [self.prediction])    
+        self.stage1Fc1Output = lasagne.layers.get_output(self.layers['s1_fc1'], deterministic=True)
+         
+        self.generate_network_output = theano.function([self.data], [self.prediction])   
+        self.generate_networkfc1_output = theano.function([self.data], [self.stage1Fc1Output])
 
     def addDANStage(self, stageIdx, net):
         prevStage = 's' + str(stageIdx - 1)
@@ -92,7 +95,7 @@ class FaceAlignment(object):
     def createCNN(self):
         net = {}
         net['input'] = lasagne.layers.InputLayer(shape=(None, self.nChannels, self.imageHeight, self.imageWidth), input_var=self.data)       
-        print("Input shape: {0}".format(net['input'].output_shape))
+        # print("Input shape: {0}".format(net['input'].output_shape))
 
         #STAGE 1
         net['s1_conv1_1'] = batch_norm(Conv2DLayer(net['input'], 64, 3, pad='same', W=GlorotUniform('relu')))
@@ -130,7 +133,7 @@ class FaceAlignment(object):
         return net
 
     def loadNetwork(self, filename, train_load=False):
-        print('Loading network...')
+        # print('Loading network...')
 
         with np.load(filename) as f:
             if train_load:
@@ -147,7 +150,17 @@ class FaceAlignment(object):
         self.initializeNetwork()
         nParams = len(lasagne.layers.get_all_param_values(self.network))
         lasagne.layers.set_all_param_values(self.network, param_values[:nParams])
+        # print(self.stage1Fc1Output)
         
+    def getFc1(self, img, inputLandmarks, normalized=False):
+        inputImg = img
+        if not normalized:
+            inputImg, transform = self.CropResizeRotate(img, inputLandmarks)
+            inputImg = inputImg - self.meanImg
+            inputImg = inputImg / self.stdDevImg
+        fc1output = self.generate_networkfc1_output([inputImg])[0][0]
+        return fc1output
+
     def processImg(self, img, inputLandmarks, normalized=False):
         inputImg = img
         if not normalized:

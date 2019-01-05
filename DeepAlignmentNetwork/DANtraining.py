@@ -3,9 +3,9 @@ from FaceAlignmentTraining import FaceAlignmentTraining
 import time
 import datetime
 
-datasetDir = "../data/"
+datasetDir = "/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/"
 content = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
-networkFilename = "../network/network-2018-12-20/network_00491_2018-12-20-14-17.npz"
+networkFilename = "/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/network/network-2018-12-20/network_00491_2018-12-20-14-17.npz"
 stages = 2
 trainSet = ImageServer.Load(datasetDir + "dataset_nimgs=60960_perturbations=[0.2, 0.2, 20, 0.25]_size=[112, 112]{}.npz".format(stages - 1))
 

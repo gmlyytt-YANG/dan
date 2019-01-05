@@ -36,7 +36,7 @@ class FaceAlignmentTraining(object):
     def initializeNetwork(self):
         self.layers = self.createCNN()
         self.network = self.layers['output']
-        
+
         self.prediction = lasagne.layers.get_output(self.network, deterministic=False)
         self.prediction_test = lasagne.layers.get_output(self.network, deterministic=True)
 
@@ -74,7 +74,7 @@ class FaceAlignmentTraining(object):
         return T.mean(errors)
     
     def landmarkOccluSquarePairErrorNorm(self, output, landmarks):
-        weight = {'occlu': 1.0, 'clear': 1.0}
+        weight = {'occlu': 0.95, 'clear': 0.8}
         b = weight['clear']
         a = weight['occlu'] - weight['clear']
 
@@ -103,7 +103,7 @@ class FaceAlignmentTraining(object):
         return T.mean(errors)
     
     def landmarkOccluPairErrorNorm(self, output, landmarks):
-        weight = {'occlu': 0.85, 'clear': 1}
+        weight = {'occlu': 0.95, 'clear': 0.8}
         b = weight['clear']
         a = weight['occlu'] - weight['clear']
         
@@ -298,7 +298,7 @@ class FaceAlignmentTraining(object):
 
         lasagne.layers.set_all_param_values(self.network, param_values)
 
-    def saveNetwork(self, dir="../networks/", train_save=False):
+    def saveNetwork(self, dir="/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/networks/", train_save=False):
         if not os.path.exists(dir):
             os.makedirs(dir)
         network_filename =\
@@ -355,7 +355,7 @@ class FaceAlignmentTraining(object):
         if print_train:
             textRepresentation = np.column_stack((range(len(self.errors)), self.errors, self.errorsTrain))
         self.drawErrors(print_train=print_train)
-        errorDir = "../network/network-{}".format(self.networkDes)
+        errorDir = "/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/network/network-{}".format(self.networkDes)
         if not os.path.exists(errorDir):
             os.mkdir(errorDir)
         np.savetxt(errorDir + "/" + "errors.txt", textRepresentation)          
@@ -365,7 +365,7 @@ class FaceAlignmentTraining(object):
         if print_train:
             plt.plot(self.errorsTrain)
             plt.ylim(ymax=np.max([self.errors[0], self.errorsTrain[0]]))
-        errorDir = "../network/network-{}".format(self.networkDes)
+        errorDir = "/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/network/network-{}".format(self.networkDes)
         if not os.path.exists(errorDir):
             os.mkdir(errorDir)
         plt.savefig(errorDir + "/" + "errors.png")
@@ -443,7 +443,7 @@ class FaceAlignmentTraining(object):
                     self.validateNetwork()
                     # self.getOutputValid()
                     if self.errors[-1] < lowestError:
-                        save_dir = "../network/network-{}/".format(networkDes)
+                        save_dir = "/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/network/network-{}/".format(networkDes)
                         if not os.path.exists(save_dir):
                             os.mkdir(save_dir)
                         self.saveNetwork(save_dir)

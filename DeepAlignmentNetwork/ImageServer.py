@@ -40,7 +40,8 @@ class ImageServer(object):
 
     def Save(self, datasetDir, filename=None):
         if filename is None:
-            filename = "dataset_nimgs={0}_perturbations={1}_size={2}".format(len(self.imgs), list(self.perturbations), self.imgSize)
+            # filename = "dataset_nimgs={0}_perturbations={1}_size={2}".format(len(self.imgs), list(self.perturbations), self.imgSize)
+            filename = "dataset_nimgs={0}".format(len(self.imgs))
             if self.color:
                 filename += "_color={0}".format(self.color)
             filename += ".npz"

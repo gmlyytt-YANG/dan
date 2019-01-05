@@ -14,6 +14,7 @@ def computeMeanError(errors, clearErrors, occluErrors, occluNums, clearNums):
 
 
 datasetDir ="../data/"
+# datasetDir ="/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/"
 
 verbose = False
 showResults = False
@@ -22,8 +23,8 @@ showCED = True
 normalization = 'centers'
 failureThreshold = 0.08
 
-# networkFilename = '../network/network-2018-12-26-20-50/network_01340_2018-12-27-04-53.npz'
 networkBase = '../network/network-2018-12-28-14-33'
+# networkBase = '/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/network/network-2018-12-20'
 filenames = os.listdir(networkBase)
 newFilenames = []
 for filename in filenames:
