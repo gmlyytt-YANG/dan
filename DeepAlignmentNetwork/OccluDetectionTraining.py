@@ -175,13 +175,14 @@ class OccluDetectionTraining(object):
         self.occluRecalls.append(occluRecallRatio)
         self.clearRecalls.append(clearRecallRatio)
 
-        recallDir = "/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/network-occlu/network-{}".format(self.networkDes)
+        recallDir = "../network-occlu/network-{}".format(self.networkDes)
         if not os.path.exists(recallDir):
             os.makedirs(recallDir)
         np.savetxt(recallDir + "/" + "occluRecall.txt", self.occluRecalls)
         np.savetxt(recallDir + "/" + "clearRecall.txt", self.clearRecalls)
 
-    def saveNetwork(self, dir="/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/networks/"):
+    # def saveNetwork(self, dir="/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/networks/"):
+    def saveNetwork(self, dir="../network/"):
         if not os.path.exists(dir):
             os.makedirs(dir)
         network_filename =\
@@ -244,7 +245,7 @@ class OccluDetectionTraining(object):
                 if train_batches % 40 == 0:
                     self.validateNetwork()
                     if self.occluRecalls[-1] >= highestOccluRecall and self.clearRecalls[-1] >= highestClearRecall * 0.99:
-                        save_dir = "/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/network-occlu/network-{}/".format(networkDes)
+                        save_dir = "../network-occlu/network-{}/".format(networkDes)
                         if not os.path.exists(save_dir):
                             os.makesdir(save_dir)
                         self.saveNetwork(save_dir)

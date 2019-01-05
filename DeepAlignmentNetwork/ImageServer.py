@@ -8,7 +8,7 @@ import glob
 from os import path
 
 class ImageServer(object):
-    def __init__(self, imgSize=[112, 112], frameFraction=0.25, initialization='box', color=False):
+    def __init__(self, imgSize=[112, 112], frameFraction=0.25, initialization='box', datasetDir=None, color=False):
         self.origLandmarks = []
         self.roughLandmarks = []
         self.filenames = []
@@ -23,7 +23,8 @@ class ImageServer(object):
         self.imgSize = imgSize
         self.frameFraction = frameFraction
         self.initialization = initialization
-        self.color = color;
+        self.datasetDir = datasetDir
+        self.color = color
 
         self.boundingBoxes = []
 
@@ -38,7 +39,7 @@ class ImageServer(object):
 
         return imageServer
 
-    def Save(self, datasetDir, filename=None):
+    def Save(self, filename=None):
         if filename is None:
             # filename = "dataset_nimgs={0}_perturbations={1}_size={2}".format(len(self.imgs), list(self.perturbations), self.imgSize)
             filename = "dataset_nimgs={0}".format(len(self.imgs))
@@ -47,7 +48,7 @@ class ImageServer(object):
             filename += ".npz"
 
         arrays = {key:value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
-        np.savez(datasetDir + filename, **arrays)
+        np.savez(self.datasetDir + filename, **arrays)
 
     def PrepareData(self, imageDirs, boundingBoxFiles, meanShape, startIdx, nImgs, mirrorFlag):
         filenames = []
@@ -148,9 +149,9 @@ class ImageServer(object):
             elif self.initialization == 'box':
                 bestFit = utils.bestFitRect(groundTruth, self.meanShape, box=self.boundingBoxes[i])
             
-            cv2.imwrite("../data/roughFaceAlignment/{}.png".format(filename), np.transpose(img, (1, 2, 0)))
-            np.savetxt("../data/roughFaceAlignment/{}.npz".format(filename), bestFit)
-            np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(filename), groundTruth)
+            # cv2.imwrite("../data/roughFaceAlignment/{}.png".format(filename), np.transpose(img, (1, 2, 0)))
+            # np.savetxt("../data/roughFaceAlignment/{}.npz".format(filename), bestFit)
+            # np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(filename), groundTruth)
 
             self.imgs.append(img)
             self.initLandmarks.append(bestFit)
@@ -214,9 +215,10 @@ class ImageServer(object):
                 tempInit = np.dot(R, (tempInit - tempInit.mean(axis=0)).T).T + tempInit.mean(axis=0)
 
                 tempImg, tempInit, tempGroundTruth = self.CropResizeRotate(self.imgs[i], tempInit, self.gtLandmarks[i])
-                # cv2.imwrite("../data/roughFaceAlignment/{}.png".format(i), np.transpose(tempImg, (1, 2, 0)))
-                # np.savetxt("../data/roughFaceAlignment/{}.npz".format(i), tempInit)
-                # np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(i), tempGroundTruth)
+                cv2.imwrite(self.datasetDir + "roughFaceAlignment/{}_{}.png".format(i, j), np.transpose(tempImg, (1, 2, 0)))
+                # np.savetxt(self.datasetDir + "roughFaceAlignment/{}_{}.npz".format(i, j), tempInit)
+                np.savetxt(self.datasetDir + "roughFaceAlignment/{}_{}.pnpz".format(i, j), tempGroundTruth)
+                np.savetxt(self.datasetDir + "roughFaceAlignment/{}_{}.npz".format(i, j), self.occlus[i])
                 # tempImg, tempInit, tempGroundTruth, tempBbox = self.CropResizeRotate2(self.imgs[i], boundingBox, tempInit, self.gtLandmarks[i]) 
                 # for elem in tempGroundTruth:
                 #     for _ in elem:
@@ -232,6 +234,10 @@ class ImageServer(object):
                 if np.sum(self.occlus[i]) > 0:
                     # print(self.occlus[i])
                     noisedTempImg = utils.gaussian_noise(tempImg, True)
+                    cv2.imwrite(self.datasetDir + "roughFaceAlignment/{}_{}_noised.png".format(i, j), np.transpose(tempImg, (1, 2, 0)))
+                    # np.savetxt(self.datasetDir + "roughFaceAlignment/{}_{}_noised.npz".format(i, j), tempInit)
+                    np.savetxt(self.datasetDir + "roughFaceAlignment/{}_{}_noised.pnpz".format(i, j), tempGroundTruth)
+                    np.savetxt(self.datasetDir + "roughFaceAlignment/{}_{}_noised.npz".format(i, j), self.occlus[i])
                     # tempImg = np.transpose(tempImg, (1, 2, 0))
                     # noisedTempImg = np.transpose(noisedTempImg, (1, 2, 0))
                     # cv2.imwrite("tmp/{}_ori.jpg".format(count), tempImg)
@@ -278,9 +284,9 @@ class ImageServer(object):
         newImgs = []  
         newGtLandmarks = []
         newInitLandmarks = []   
-        output_dir = './tmp' 
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
+        # output_dir = './tmp' 
+        # if not os.path.exists(output_dir):
+        #     os.mkdir(output_dir)
         for i in range(self.initLandmarks.shape[0]):
             # print(self.filenames[i])
             img = self.imgs[i]
@@ -290,9 +296,9 @@ class ImageServer(object):
             # np.savetxt("../data/roughFaceAlignment/{}.npz".format(i), initLandmark)
             # np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(i), gtLandmark)
             tempImg, tempInit, tempGroundTruth = self.CropResizeRotate(img, initLandmark, gtLandmark)
-            cv2.imwrite("../data/roughFaceAlignment/{}.png".format(i), np.transpose(tempImg, (1, 2, 0)))
-            np.savetxt("../data/roughFaceAlignment/{}.npz".format(i), tempInit)
-            np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(i), tempGroundTruth)
+            # cv2.imwrite("../data/roughFaceAlignment/{}.png".format(i), np.transpose(tempImg, (1, 2, 0)))
+            # np.savetxt("../data/roughFaceAlignment/{}.npz".format(i), tempInit)
+            # np.savetxt("../data/roughFaceAlignment/{}.pnpz".format(i), tempGroundTruth)
             
             # prefix = os.path.splitext('_'.join(self.filenames[i].split('/')[3:]))[0]
             # tempImg =  tempImg.transpose((1, 2, 0))
@@ -335,7 +341,7 @@ class ImageServer(object):
             plt.imshow(np.transpose(meanImg, (1, 2, 0)))
         else:
             plt.imshow(meanImg[0], cmap=plt.cm.gray)
-        plt.savefig("../data/meanImg.png")
+        plt.savefig(self.datasetDir + "meanImg.png")
         plt.clf()
 
         stdDevImg = self.stdDevImg - self.stdDevImg.min()
@@ -345,7 +351,7 @@ class ImageServer(object):
             plt.imshow(np.transpose(stdDevImg, (1, 2, 0)))
         else:
             plt.imshow(stdDevImg[0], cmap=plt.cm.gray)
-        plt.savefig("../data/stdDevImg.png")
+        plt.savefig(self.datasetDir + "stdDevImg.png")
         plt.clf()
 
     def CropResizeRotate(self, img, initShape, groundTruth):

@@ -5,7 +5,8 @@ import time
 import datetime
 from OccluDetectionTraining import OccluDetectionTraining
 
-datasetDir ="/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/"
+# datasetDir ="/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/"
+datasetDir ="../data/"
 content = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M"))
 trainSetName = "dataset_nimgs=62960.npz"
 valSetName = "dataset_nimgs=1288.npz"
