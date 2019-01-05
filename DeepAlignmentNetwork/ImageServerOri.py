@@ -308,7 +308,7 @@ class ImageServer(object):
             plt.imshow(np.transpose(meanImg, (1, 2, 0)))
         else:
             plt.imshow(meanImg[0], cmap=plt.cm.gray)
-        plt.savefig("/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/meanImg.jpg")
+        plt.savefig("../data/meanImg.jpg")
         plt.clf()
 
         stdDevImg = self.stdDevImg - self.stdDevImg.min()
@@ -318,7 +318,7 @@ class ImageServer(object):
             plt.imshow(np.transpose(stdDevImg, (1, 2, 0)))
         else:
             plt.imshow(stdDevImg[0], cmap=plt.cm.gray)
-        plt.savefig("/media/kb250/K/yl/10_DeepOccluAlignmentNetwork/data/stdDevImg.jpg")
+        plt.savefig("../data/stdDevImg.jpg")
         plt.clf()
 
     def CropResizeRotate(self, img, initShape, groundTruth):
